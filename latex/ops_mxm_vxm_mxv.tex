@@ -1,0 +1,193 @@
+%-----------------------------------------------------------------------------
+\subsection{{\sf mxm}: Matrix-matrix multiply}
+
+Multiplies a matrix with another matrix on a semiring. The result is a matrix.
+
+\paragraph{\syntax}
+
+$$
+\matrix{T} ~ = ~ \matrix{A}^{[T]} \oplus.\otimes \matrix{B}^{[T]}
+$$
+
+\paragraph{Given:}
+
+\begin{itemize}[leftmargin=0.7in]
+    \item[$\matrix{T}$]    ({\sf INOUT}) $\in \mathbb{D}_\oplus^{n\times m}$
+    
+    \item[$\oplus.\otimes$]   ({\sf IN}) The semiring used in the matrix
+    multiplication, $\langle \mathbb{D}_\oplus, \mathbb{D}_{in1},\mathbb{D}_{in2},\oplus,\otimes,0 \rangle$.
+
+    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_A^{n\times k}$
+
+    \item[$\matrix{B}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_B^{k\times m}$
+
+\end{itemize}
+
+
+\paragraph{Description}
+
+{\sf mxm} computes the matrix product ${\sf T} = {\sf
+A}^{[T]} \oplus . \otimes {\sf B}^{[T]}$ (where matrices {\sf A}
+and {\sf B} can be optionally transposed).  
+
+\scott{Definitions/notation of each matrix omitted, define once earlier if at all.}
+
+\scott{Domain compatibility b/w containers and operators omitted, define once earlier.}
+
+
+From the argument matrices, the internal matrices used in 
+the computation are formed ($\leftarrow$ denotes copy): \scott{Find a notation that does not refer to descriptors (descriptors is an implementation detail not math).}
+\begin{enumerate}
+
+	\item Matrix $\matrix{\widetilde{A}} \leftarrow
+    {\sf desc[GrB\_INP0].GrB\_TRAN} \ ? \ {\sf A}^T : {\sf A}$.
+
+	\item Matrix $\matrix{\widetilde{B}} \leftarrow
+    {\sf desc[GrB\_INP1].GrB\_TRAN} \ ? \ {\sf B}^T : {\sf B}$.
+\end{enumerate}
+
+\scott{Dimension compatibility checks omitted.}
+
+We are now ready to carry out the matrix multiplication.
+The intermediate matrix \\
+$\matrix{\widetilde{T}} = \langle
+\bDout({\sf op}), \bold{nrows}(\matrix{\widetilde{A}}), \bold{ncols}(\matrix{\widetilde{B}}),
+\{(i,j,T_{ij}) : \bold{ind}(\matrix{\widetilde{A}}(i,:)) \cap
+\bold{ind}(\matrix{\widetilde{B}}(:,j)) \neq \emptyset \} \rangle$
+is created.  The value of each of its elements is computed by 
+\[T_{ij} = \bigoplus_{k \in \bold{ind}(\matrix{\widetilde{A}}(i,:)) \cap
+\bold{ind}(\matrix{\widetilde{B}}(:,j))} (\matrix{\widetilde{A}}(i,k)
+\otimes \matrix{\widetilde{B}}(k,j)),\] where $\oplus$ and $\otimes$
+are the additive and multiplicative operators of semiring {\sf op},
+respectively.
+
+\scott{Is the following describe possibilities in the realm of math?}
+\begin{itemize}
+\item if $\oplus$ is commutative and associative no order is imposed on the elements of the intersection set.
+\item if $\oplus$ is not commutative then the order must be from lowest to highest index $k$. Arbitrary grouping is allowed as long as relative order is maintained.
+\item if $\oplus$ is neither commutative nor associative, strictly sequential and ordered operation is required.
+\end{itemize}
+
+%-----------------------------------------------------------------------------
+
+\subsection{{\sf vxm}: Vector-matrix multiply}
+
+Multiplies a (row) vector with a matrix on an semiring. The result is a vector.
+
+\paragraph{\syntax}
+
+$$
+\vector{t}^T ~ = ~ \vector{u}^{T} \oplus.\otimes \matrix{A}^{[T]}
+$$
+
+\paragraph{Parameters}
+
+\begin{itemize}[leftmargin=1.1in]
+    \item[$\vector{t}$]    ({\sf INOUT}) $\in \mathbb{D}_\oplus^{m}$
+
+    \item[$\oplus.\otimes$]   ({\sf IN}) The semiring used in the matrix
+    multiplication, $\langle \mathbb{D}_\oplus, \mathbb{D}_{in1},\mathbb{D}_{in2},\oplus,\otimes,0 \rangle$.
+
+    \item[$\vector{u}$]    ({\sf INOUT}) $\in \mathbb{D}_{u}^{n}$
+
+    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_A^{n\times m}$
+
+\end{itemize}
+
+\paragraph{Description}
+
+{\sf vxm} computes the vector-matrix product ${\sf t}^T = {\sf
+u}^T \oplus . \otimes {\sf A}^{[T]}$ (where matrix {\sf A}
+ can be optionally transposed).
+
+\scott{Definitions/notation of each matrix and vector omitted, define once earlier if at all.}
+
+\scott{Domain compatibility b/w containers and operators omitted, define once earlier.}
+
+
+From the argument vectors and matrices, the internal matrices and vectors used in 
+the computation are formed ($\leftarrow$ denotes copy): \scott{Find a notation that does not refer to descriptors (descriptors is an implementation detail not math).}
+\begin{enumerate}
+	\item Vector $\vector{\widetilde{u}} \leftarrow {\sf u}$.
+
+	\item Matrix $\matrix{\widetilde{A}} \leftarrow {\sf desc[GrB\_INP1].GrB\_TRAN} \ ? \ {\sf A}^T : {\sf A}$.
+\end{enumerate}
+
+\scott{Dimension compatibility checks omitted.}
+
+
+We are now ready to carry out the vector-matrix multiplication.
+
+The intermediate vector $\vector{\widetilde{t}} = \langle
+\bDout({\sf op}), \bold{ncols}(\matrix{\widetilde{A}}),
+\{(j,t_j) : \bold{ind}(\vector{\widetilde{u}}) \cap
+\bold{ind}(\matrix{\widetilde{A}}(:,j)) \neq \emptyset \} \rangle$
+is created.  The value of each of its elements is computed by 
+\[t_j = \bigoplus_{k \in \bold{ind}(\vector{\widetilde{u}}) \cap
+\bold{ind}(\matrix{\widetilde{A}}(:,j))} (\vector{\widetilde{u}}(k)
+\otimes \matrix{\widetilde{A}}(k,j)),\] where $\oplus$ and $\otimes$
+are the additive and multiplicative operators of semiring {\sf op},
+respectively.
+
+\scott{Same comments about associativity and commutativity.}
+
+%-----------------------------------------------------------------------------
+
+\subsection{{\sf mxv}: Matrix-vector multiply}
+
+Multiplies a matrix by a vector on a semiring. The result is a vector.
+
+\paragraph{\syntax}
+
+$$
+\vector{t}~ = ~ \matrix{A}^{[T]} \oplus.\otimes \vector{u}
+$$
+
+\paragraph{Parameters}
+
+\begin{itemize}[leftmargin=1.1in]
+    \item[$\vector{t}$]    ({\sf INOUT}) $\in \mathbb{D}_\oplus^{n}$
+
+    \item[$\oplus.\otimes$]   ({\sf IN}) The semiring used in the matrix
+    multiplication, $\langle \mathbb{D}_\oplus, \mathbb{D}_{in1},\mathbb{D}_{in2},\oplus,\otimes,0 \rangle$.
+
+    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_A^{n\times m}$
+
+    \item[$\vector{u}$]    ({\sf INOUT}) $\in \mathbb{D}_{u}^{m}$
+
+\end{itemize}
+
+\paragraph{Description}
+
+{\sf GrB\_mxv} computes the matrix-vector product ${\sf w} = {\sf A}
+\oplus . \otimes {\sf u}$ (where matrix {\sf A}
+ can be optionally transposed).
+
+\scott{Definitions/notation of each matrix and vector omitted, define once earlier if at all.}
+
+\scott{Domain compatibility b/w containers and operators omitted, define once earlier.}
+
+From the argument vectors and matrices, the internal matrices and mask used in 
+the computation are formed ($\leftarrow$ denotes copy):  \scott{Find a notation that does not refer to descriptors (descriptors is an implementation detail not math).}
+\begin{enumerate}
+	\item Matrix $\matrix{\widetilde{A}} \leftarrow {\sf desc[GrB\_INP0].GrB\_TRAN} \ ? \ {\sf A}^T : {\sf A}$.
+
+	\item Vector $\vector{\widetilde{u}} \leftarrow {\sf u}$.
+\end{enumerate}
+
+\scott{Dimension compatibility checks omitted.}
+
+We are now ready to carry out the matrix-vector multiplication.
+
+The intermediate vector $\vector{\widetilde{t}} = \langle
+\bDout({\sf op}), \bold{nrows}(\matrix{\widetilde{A}}),
+\{(i,t_i) : \bold{ind}(\matrix{\widetilde{A}}(i,:)) \cap 
+\bold{ind}(\vector{\widetilde{u}}) \neq \emptyset \} \rangle$
+is created.  The value of each of its elements is computed by 
+\[t_i = \bigoplus_{k \in \bold{ind}(\matrix{\widetilde{A}}(i,:)) \cap
+\bold{ind}(\vector{\widetilde{u}})} (\matrix{\widetilde{A}}(i,k)
+\otimes \vector{\widetilde{u}}(k)),\] where $\oplus$ and $\otimes$
+are the additive and multiplicative operators of semiring {\sf op},
+respectively.
+
+\scott{Same comments about associativity and commutativity.}

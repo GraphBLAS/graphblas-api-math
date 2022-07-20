@@ -1,0 +1,152 @@
+\section{GraphBLAS Computation \scott{Need better name}}
+
+No error checking is performed in this document
+
+It is assumed in this document that the dimensions of all matrices and vectors are compatible.
+
+It is assumed that the domain used by the containers and operators are compatible (i.e., the same or cast conversion is supported).  \scott{Can I get away with some sort of a blanket statement that covers all supported casting?}
+
+All GraphBLAS operations performed ``as if'' they are carried out in three sequential steps outlined below:
+
+\begin{enumerate}[leftmargin=1.1in]
+\item[\bf Base] The specific computation of a particular operation is carried out.  An example is $\matrix{A}\oplus.\otimes\matrix{B}$ of {\sf mxm} or $\left[\oplus_{i,j}\matrix{A}(i,j) \right]$ of {\sf reduce}.  In this specification, the result of this step is stored in an intermediate matrix ($\tilde{\matrix{T}}$), vector ($\tilde{\vector{t}}$), or scalar ($\tilde{t}$).
+
+\item[\bf Accumulation] All GraphBLAS operations support an optional accumulation step  adding values in the existing output container (scalar, vector or matrix) with the results of the Base step.  In this specification, the result of this step is stored in an intermediate matrix ($\tilde{\matrix{Z}}$), vector ($\tilde{\vector{z}}$), or scalar ($\tilde{z}$).
+
+\item[\bf Masking] For matrix and vector operations, the final result is written into the output container, possibly under control of a write mask -- either $\matrix{M}$ for matrices or $\vector{m}$ for vectors.  Scalar operations do not carry out this step.
+
+\end{enumerate}
+
+The Accumulation and Masking steps are common to most of the operations and are presented separately first.
+
+%============================================================
+%============================================================
+\subsection{Optional Accumulation}
+
+The mathematics...
+
+\begin{itemize}
+    \item[$\odot$] ({\sf IN}) An optional binary operator used for accumulating
+    entries into existing $\matrix{C}$ entries, $\langle \bDout(\odot),\bDin1(\odot),\bDin2(\odot), \odot \rangle$.
+\end{itemize}
+
+\paragraph{Matrix accumulation}
+
+\input{ops_accum_z_matrix}
+
+
+\paragraph{Vector accumulation}
+
+\input{ops_accum_z_vector}
+
+
+%============================================================
+%============================================================
+\subsection{Optional Masking}
+
+The mathematics...
+
+\begin{itemize}
+    \item[$\tilde{\matrix{M}}$] ({\sf IN}) $\in \mathbb{B}^{n\times m}$
+
+	\item[{\sf Mask}] $\langle \bold{D}({\sf Mask}),\bold{nrows}({\sf Mask}),\bold{ncols}({\sf Mask}),\bold{L}({\sf Mask}) = \{(i,j,M_{ij}) \} \rangle$ (optional)
+\end{itemize}
+
+\paragraph{Masks: Structure-only, Complement, and Replace}
+
+When a GraphBLAS operation supports the use of an optional mask, that mask is
+specified through a GraphBLAS vector (for one-dimensional masks) or
+a GraphBLAS matrix (for two-dimensional masks).  When a mask is used and the 
+{\tt GrB\_STRUCTURE} descriptor value is not set, it is applied to the result 
+from the operation wherever the stored values in the mask evaluate to true.  If
+the {\tt GrB\_STRUCTURE} descriptor is set, the mask is applied to the result
+from the operation wherever the mask as a stored value (regardless of that value).
+Wherever the mask is applied, the result from the operation is either assigned 
+to the provided output matrix/vector or, if a binary accumulation operation is 
+provided, the result is accumulated into the corresponding elements of the provided 
+output matrix/vector.
+
+Given a GraphBLAS vector $\vector{v} = \langle D,N, \{ (i,v_i) \} \rangle$, a
+one-dimensional mask is derived for use in the operation as follows:
+\[
+\vector{m} = 
+\begin{cases}
+\langle N, \{ \mathbf{ind}(\vector{v}) \} \rangle, & \mbox{if {\tt GrB\_STRUCTURE} is specified,} \\
+\langle N, \{ i : \mbox{\tt (bool)}v_i = \true \} \rangle, & \mbox{otherwise}
+\end{cases}
+\]
+where {\tt (bool)}$v_i$ denotes casting the value $v_i$ to a Boolean value (\true\ or \false).
+Likewise, given a GraphBLAS matrix $\matrix{A} = \langle D, M, N, \{ (i,j,A_{ij}) \} \rangle$,
+a two-dimensional mask is derived for use in the operation as follows:
+\[
+\matrix{M} = 
+\begin{cases}
+\langle M,N, \{ \mathbf{ind}(\matrix{A}) \} \rangle, & \mbox{if {\tt GrB\_STRUCTURE} is specified,} \\
+\langle M,N, \{ (i,j) : \mbox{\tt (bool)}A_{ij} = \true \} \rangle, & \mbox{otherwise}
+\end{cases}
+\]
+where {\tt (bool)}$A_{ij}$ denotes casting the value $A_{ij}$ to a Boolean value. 
+(\true\ or \false)
+
+In both the one- and two-dimensional cases, the mask may also have a subsequent 
+complement operation applied ($Section$~\ref{Sec:Masks}) as specified in the 
+descriptor, before a final mask is generated for use in the operation.
+
+When the descriptor of an operation with a mask has specified that 
+the {\sf GrB\_REPLACE} value is to be applied to the output ({\sf GrB\_OUTP}),
+then anywhere the mask is not {\sf true}, the corresponding location in
+the output is cleared.
+
+$$
+\matrix{C} \langle \matrix{M} \rangle \odot\!\!= \matrix{A} \oplus.\otimes \matrix{B}
+$$
+
+$$
+\matrix{C} \langle \neg{\matrix{M}} \rangle \odot\!\!= \matrix{A} \oplus.\otimes \matrix{B}
+$$
+
+$$
+\matrix{C} \langle s(\matrix{M}) \rangle \odot\!\!= \matrix{A} \oplus.\otimes \matrix{B}
+$$
+
+$$
+\matrix{C} \langle s(\neg{\matrix{M}} \rangle \odot\!\!= \matrix{A} \oplus.\otimes \matrix{B}
+$$
+
+
+From the argument matrices, the internal mask used in 
+the computation are formed ($\leftarrow$ denotes copy):
+\begin{enumerate}
+	\item Matrix $\matrix{\widetilde{C}} \leftarrow {\sf C}$.
+
+	\item Two-dimensional mask, $\matrix{\widetilde{M}}$, is computed from
+    argument {\sf Mask} as follows:
+	\begin{enumerate}
+		\item If ${\sf Mask} = {\sf GrB\_NULL}$, then $\matrix{\widetilde{M}} = 
+        \langle \bold{nrows}({\sf C}), \bold{ncols}({\sf C}), \{(i,j), 
+        \forall i,j : 0 \leq i <  \bold{nrows}({\sf C}), 0 \leq j < 
+        \bold{ncols}({\sf C}) \} \rangle$.
+
+		\item If {\sf Mask} $\ne$ {\sf GrB\_NULL},
+        \begin{enumerate}
+            \item If ${\sf desc[GrB\_MASK].GrB\_STRUCTURE}$ is set, then 
+            $\matrix{\widetilde{M}} = \langle \bold{nrows}({\sf Mask}), 
+            \bold{ncols}({\sf Mask}), \{(i,j) : (i,j) \in \bold{ind}({\sf Mask}) \} \rangle$,
+            \item Otherwise, $\matrix{\widetilde{M}} = \langle \bold{nrows}({\sf Mask}), 
+            \bold{ncols}({\sf Mask}), \\ \{(i,j) : (i,j) \in \bold{ind}({\sf Mask}) \wedge 
+            ({\sf bool}){\sf Mask}(i,j) = \true\} \rangle$.
+        \end{enumerate}
+
+		\item	If ${\sf desc[GrB\_MASK].GrB\_COMP}$ is set, then 
+        $\matrix{\widetilde{M}} \leftarrow \neg \matrix{\widetilde{M}}$.
+	\end{enumerate}
+\end{enumerate}
+
+\paragraph{Matrix masking}
+
+\input{ops_mask_replace_matrix}
+
+
+\paragraph{Vector masking}
+
+\input{ops_mask_replace_vector}
