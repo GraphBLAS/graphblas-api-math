@@ -238,11 +238,20 @@ this as the {\it GraphBLAS Mathematical Specification}.
 
 The remainder of this document is organized as follows:
 \begin{itemize}
-%\item Chapter~\ref{Chp:Concepts}: Basic Concepts
-%\item Chapter~\ref{Chp:Objects}: Objects
+\item Chapter~\ref{Chp:Concepts}: Basic Concepts
+\item Chapter~\ref{Chp:Objects}: Objects
 \item Chapter~\ref{Chp:Methods}: Methods
 \item Appendix~\ref{Chp:RevHistory}: Revision history
 \end{itemize}
+
+
+\paragraph{Compliance}
+
+We follow a \emph{prescriptive} approach to the definition of the semantics
+of GraphBLAS operations. That is, for each operation we give a recipe for
+producing its outcome.
+Any implementation that produces the same outcome is a conforming implementation.
+
 
 %=============================================================================
 %=============================================================================
@@ -252,13 +261,11 @@ The remainder of this document is organized as follows:
 
 %-----------------------------------------------------------------------------
 
-\chapter{Methods \scott{Rename to Operations}}
-\label{Chp:Methods}
+%\chapter{Methods \scott{Rename to Operations}}
+%\label{Chp:Methods}
 
-This chapter defines the behavior of all the methods in the GraphBLAS C API.
-All methods can be declared for use in programs by including the {\tt GraphBLAS.h} header file.
-
-We would like to emphasize that no GraphBLAS method will imply a predefined order over any associative operators. Implementations of the GraphBLAS are encouraged to exploit associativity to optimize performance of any GraphBLAS method. This holds even if the definition of the GraphBLAS method implies a fixed order for the associative operations.
+%This chapter defines the behavior of all the methods in the GraphBLAS C API.
+%All methods can be declared for use in programs by including the {\tt GraphBLAS.h} header file.
 
 %\input{context_methods}
 
@@ -273,7 +280,6 @@ but are not part of the the GraphBLAS math specification.
 %\input{descriptor_methods}
 
 \input{graphblas_operations}
-\input{graphblas_computation}
 
 \input{ops_mxm_vxm_mxv}
 %\input{ops_ewisemult_ewiseadd}
