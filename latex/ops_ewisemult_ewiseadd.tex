@@ -1,0 +1,271 @@
+%-----------------------------------------------------------------------------
+\section{Element-wise multiplication or intersection}
+
+{\sf eWiseMult} returns an object whose indices are the ``intersection'' of 
+the indices of the inputs. The operator is invoked when scalars from two 
+operands are present.
+
+%-----------------------------------------------------------------------------
+
+\subsection{{\sf eWiseMult/Intersect}: Vector variant}
+
+Perform element-wise (general) multiplication on the intersection of elements 
+of two vectors, producing a third vector as result.
+
+\paragraph{\syntax}
+
+$$
+\matrix{T} ~ = ~ \vector{u} \otimes \vector{v}
+$$
+
+where
+
+\begin{itemize}[leftmargin=1.1in]
+    \item[$\vector{u}$]    ({\sf IN}) $\in \mathbb{D}_{u}^{n}$
+
+    \item[$\vector{v}$]    ({\sf IN}) $\in \mathbb{D}_{v}^{n}$
+
+    \item[$\otimes$]   ({\sf IN}) binary operator to combine values, $\mathbb{D}_{in1} \times \mathbb{D}_{in2} \rightarrow \mathbb{D}_\otimes$.  It does not need to commutative or associative.
+
+    \item[$\matrix{T}$]    ({\sf OUT}) $\in \mathbb{D}_\otimes^{n}$
+
+\end{itemize}
+
+\paragraph{Description}
+
+This variant of {\sf eWiseMult} or {\sf Intersect} computes the element-wise ``product'' or 
+``intersection'' of two vectors given a specified binary operator, 
+$\otimes$: $\matrix{T} = \vector{u} \otimes \vector{v}$.  Assuming the domains of the
+elements in the vectors and the domains expected by the operator are compatible
+and the sizes of the vectors are the same.
+
+From the argument vectors, the internal vectors used in 
+the computation are formed ($\leftarrow$ denotes copy):
+\begin{enumerate}
+	\item Vector $\vector{\widetilde{u}} \leftarrow \vector{u}$.
+
+	\item Vector $\vector{\widetilde{v}} \leftarrow \vector{v}$.
+\end{enumerate}
+
+We are now ready to carry out the element-wise ``product''.
+
+The intermediate vector $\vector{\widetilde{t}} = \langle
+\bDout({\sf op}), \bold{size}(\vector{\widetilde{u}}),
+\{(i,t_i) : \bold{ind}(\vector{\widetilde{u}}) \cap 
+\bold{ind}(\vector{\widetilde{v}})
+ \neq \emptyset \} \rangle$
+is created.  The value of each of its elements is computed by:
+\[t_i = (\vector{\widetilde{u}}(i)
+\otimes \vector{\widetilde{v}}(i)), \forall i \in 
+(\bold{ind}(\vector{\widetilde{u}}) \cap 
+\bold{ind}(\vector{\widetilde{v}}))\]
+
+%-----------------------------------------------------------------------------
+
+\subsection{{\sf eWiseMult/Intersect}: Matrix variant}
+
+Perform element-wise (general) multiplication on the intersection of elements 
+of two matrices, producing a third matrix as result.
+
+\paragraph{\syntax}
+
+
+$$
+\matrix{T} ~ = ~ \matrix{A}^{[T]} \otimes \matrix{B}^{[T]}
+$$
+
+where
+
+\begin{itemize}[leftmargin=1.1in]
+    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_{A}^{n\times m}$
+
+    \item[$\matrix{B}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_{B}^{n\times m}$
+
+    \item[$\otimes$]   ({\sf IN}) binary operator to combine values, $\mathbb{D}_{in1} \times \mathbb{D}_{in2} \rightarrow \mathbb{D}_\otimes$.  It does not need to commutative nor associative.
+
+    \item[$\matrix{T}$]    ({\sf OUT}) $\in \mathbb{D}_\otimes^{n\times m}$
+\end{itemize}
+
+
+\paragraph{Description}
+
+This variant of {\sf eWiseMult} or {\sf Intersect} computes the element-wise ``product'' of
+two matrices: $\matrix{T} = \matrix{A} \otimes \matrix{B}$.  Assuming the domains of the
+elements in the matrices and the domains expected by the operator are compatible
+and the sizes of the matrices (after optional transposes) are the same.
+
+From the argument matrices, the internal matrices used in 
+the computation are formed ($\leftarrow$ denotes copy): \scott{Find a notation that does not refer to descriptors (descriptors is an implementation detail not math).}
+\begin{enumerate}
+	\item Matrix $\matrix{\widetilde{A}} \leftarrow
+    {\sf desc[GrB\_INP0].GrB\_TRAN} \ ? \ \matrix{A}^T : \matrix{A}$.
+
+	\item Matrix $\matrix{\widetilde{B}} \leftarrow
+    {\sf desc[GrB\_INP1].GrB\_TRAN} \ ? \ \matrix{B}^T : \matrix{B}$.
+\end{enumerate}
+
+The intermediate matrix $\matrix{\widetilde{T}} = \langle
+\bDout({\sf op}), \bold{nrows}(\matrix{\widetilde{A}}), \bold{ncols}(\matrix{\widetilde{A}}),
+\{(i,j,T_{ij}) : \bold{ind}(\matrix{\widetilde{A}}) \cap 
+\bold{ind}(\matrix{\widetilde{B}}) \neq \emptyset \} \rangle$
+is created.  The value of each of its elements is computed by 
+\[T_{ij} = (\matrix{\widetilde{A}}(i,j)
+\otimes \matrix{\widetilde{B}}(i,j)), \forall (i,j) \in 
+\bold{ind}(\matrix{\widetilde{A}}) \cap 
+\bold{ind}(\matrix{\widetilde{B}})\]
+
+%=============================================================================
+%-----------------------------------------------------------------------------
+\section{Element-wise addition or union}
+
+{\sf eWiseAdd} returns an object whose set of indices are the ``union'' of the 
+indices of the input operand. The operator is invoked when scalars from two 
+operands are present (either stored in the matrix or in the optional variant: 
+passed as the fill-in value).
+
+
+%-----------------------------------------------------------------------------
+\subsection{{\sf eWiseAdd/Union}: Vector variant}
+
+Perform element-wise (general) addition on the elements of two vectors,
+producing a third vector as result.
+
+\paragraph{\syntax}
+
+\begin{eqnarray*}
+\matrix{T} & = & \vector{u} \oplus \vector{v} \\
+\matrix{T} & = & \left\{ \vector{u}\cup u_0 \right\} \oplus \left\{ \vector{v} \cup v_0 \right\}  \mbox{~~~(providing missing values)}
+\end{eqnarray*}
+
+where
+
+\begin{itemize}[leftmargin=1.1in]
+    \item[$\vector{u}$]    ({\sf IN}) $\in \mathbb{D}_{u}^{n}$
+
+    \item[$\vector{v}$]    ({\sf IN}) $\in \mathbb{D}_{v}^{n}$
+
+    \item[$\oplus$]   ({\sf IN}) binary operator to combine values, $\mathbb{D}_{in1} \times \mathbb{D}_{in2} \rightarrow \mathbb{D}_\oplus$.  It does not need to commutative or associative.
+
+    \item[$\matrix{T}$]    ({\sf OUT}) $\in \mathbb{D}_\oplus^{n}$
+
+\end{itemize}
+
+\paragraph{Description}
+
+This variant of {\sf eWiseAdd} or {\sf Union} computes the element-wise ``sum'' or
+``union'' of two vectors given the specified binary operator, $\oplus$: 
+$\matrix{T} = \vector{u} \oplus \vector{v}$.  Assuming the domains of the
+elements in the vectors and the domains expected by the operator are compatible
+and the sizes of the vectors are the same.
+
+From the argument vectors, the internal vectors used in 
+the computation are formed ($\leftarrow$ denotes copy):
+\begin{enumerate}
+	\item Vector $\vector{\widetilde{u}} \leftarrow \vector{u}$.
+
+	\item Vector $\vector{\widetilde{v}} \leftarrow \vector{v}$.
+\end{enumerate}
+
+We are now ready to carry out the element-wise ``sum''.
+
+The intermediate vector $\vector{\widetilde{t}} = \langle
+\bDout({\sf op}), \bold{size}(\vector{\widetilde{u}}),
+\{(i,t_i) : \bold{ind}(\vector{\widetilde{u}}) \cup 
+\bold{ind}(\vector{\widetilde{v}})
+ \neq \emptyset \} \rangle$
+is created.  The value of each of its elements is computed by:
+\begin{eqnarray*}
+t_i & = & 
+\begin{cases}
+ \vector{\widetilde{u}}(i) \oplus \vector{\widetilde{v}}(i), & \forall i \in (\bold{ind}(\vector{\widetilde{u}}) \cap \bold{ind}(\vector{\widetilde{v}}))\\
+ \vector{\widetilde{u}}(i), & \forall i \in (\bold{ind}(\vector{\widetilde{u}}) - (\bold{ind}(\vector{\widetilde{u}}) \cap \bold{ind}(\vector{\widetilde{v}})))\\
+  \vector{\widetilde{v}}(i), & \forall i \in (\bold{ind}(\vector{\widetilde{v}}) - (\bold{ind}(\vector{\widetilde{u}}) \cap \bold{ind}(\vector{\widetilde{v}})))
+\end{cases}
+\end{eqnarray*}
+where the difference operator in the previous expressions refers to set difference.
+
+In the case where $u_0$ and $v_0$ scalars are specified they are used when only
+one of the vector operands has a stored value at a particular location (and the other does).  
+The value of each of its elements is computed by:
+\begin{eqnarray*}
+t_i & = & 
+\begin{cases}
+ \vector{\widetilde{u}}(i) \oplus \vector{\widetilde{v}}(i), & \forall i \in (\bold{ind}(\vector{\widetilde{u}}) \cap \bold{ind}(\vector{\widetilde{v}}))\\
+ \vector{\widetilde{u}}(i) {\color{red}~ \oplus ~ v_0}, & \forall i \in (\bold{ind}(\vector{\widetilde{u}}) - (\bold{ind}(\vector{\widetilde{u}}) \cap \bold{ind}(\vector{\widetilde{v}})))\\
+
+ {\color{red} u_0 ~\oplus ~}\vector{\widetilde{v}}(i), & \forall i \in (\bold{ind}(\vector{\widetilde{v}}) - (\bold{ind}(\vector{\widetilde{u}}) \cap \bold{ind}(\vector{\widetilde{v}})))
+\end{cases}
+\end{eqnarray*}
+where the difference operator in the previous expressions refers to set difference.
+
+
+%-----------------------------------------------------------------------------
+
+\subsection{{\sf eWiseAdd/Union}: Matrix variant}
+
+Perform element-wise (general) addition on the elements of two matrices,
+producing a third matrix as result.
+
+\paragraph{\syntax}
+
+\begin{eqnarray*}
+\matrix{T} & = & \matrix{A}^{[T]} \oplus \matrix{B}^{[T]} \\
+\matrix{T} & = & \left\{ \matrix{A}^{[T]}\cup a_0 \right\} \oplus \left\{ \matrix{B}^{[T]} \cup b_0 \right\}  \mbox{~~~(providing missing values)}
+\end{eqnarray*}
+
+where
+
+\begin{itemize}[leftmargin=1.1in]
+    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_{A}^{n\times m}$
+
+    \item[$\matrix{B}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_{B}^{n\times m}$
+
+    \item[$\oplus$]   ({\sf IN}) binary operator to combine values, $\mathbb{D}_{in1} \times \mathbb{D}_{in2} \rightarrow \mathbb{D}_\oplus$.  It does not need to commutative or associative.
+
+    \item[$\matrix{T}$]    ({\sf OUT}) $\in \mathbb{D}_\otimes^{n\times m}$
+\end{itemize}
+
+\paragraph{Description}
+
+This variant of {\sf eWiseAdd} or {\sf Union} computes the element-wise ``sum'' or
+``union'' of two matrices given the specified binary operator, $\oplus$: 
+$\matrix{T} = {\sf A} \oplus {\sf B}$.  Assuming the domains of the
+elements in the matrices and the domains expected by the operator are compatible
+and the sizes of the matrices are the same.
+
+From the argument matrices, the internal matrices used in 
+the computation are formed ($\leftarrow$ denotes copy): \scott{Find a notation that does not refer to descriptors (descriptors is an implementation detail not math).}
+\begin{enumerate}	\item Matrix $\matrix{\widetilde{A}} \leftarrow
+    {\sf desc[GrB\_INP0].GrB\_TRAN} \ ? \ {\sf A}^T : {\sf A}$.
+
+	\item Matrix $\matrix{\widetilde{B}} \leftarrow
+    {\sf desc[GrB\_INP1].GrB\_TRAN} \ ? \ {\sf B}^T : {\sf B}$.
+\end{enumerate}
+
+The intermediate matrix $\matrix{\widetilde{T}} = \langle
+\bDout({\sf op}), \bold{nrows}(\matrix{\widetilde{A}}), \bold{ncols}(\matrix{\widetilde{A}}),
+\{(i,j,T_{ij}) : \bold{ind}(\matrix{\widetilde{A}}) \cup 
+\bold{ind}(\matrix{\widetilde{B}}) \neq \emptyset \} \rangle$
+is created.  The value of each of its elements is computed by :
+\begin{eqnarray*}
+T_{ij} & = & 
+\begin{cases}
+ (\matrix{\widetilde{A}}(i,j) \oplus \matrix{\widetilde{B}}(i,j)),& \forall (i,j) \in \bold{ind}(\matrix{\widetilde{A}}) \cap \bold{ind}(\matrix{\widetilde{B}})\\
+ \matrix{\widetilde{A}}(i,j),& \forall (i,j) \in (\bold{ind}(\matrix{\widetilde{A}}) - (\bold{ind}(\matrix{\widetilde{A}}) \cap \bold{ind}(\matrix{\widetilde{B}})))\\
+ \matrix{\widetilde{B}}(i.j),& \forall (i,j) \in (\bold{ind}(\matrix{\widetilde{B}}) - (\bold{ind}(\matrix{\widetilde{A}}) \cap \bold{ind}(\matrix{\widetilde{B}})))
+\end{cases}
+\end{eqnarray*}
+where the difference operator in the previous expressions refers to set difference.
+
+In the case where $a_0$ and $b_0$ scalars are specified they are used when only
+one of the vector operands has a stored value at a particular location (and the other does).  
+The value of each of its elements is computed by:
+\begin{eqnarray*}
+T_{ij} & = & 
+\begin{cases}
+ (\matrix{\widetilde{A}}(i,j) \oplus \matrix{\widetilde{B}}(i,j)), & \forall (i,j) \in \bold{ind}(\matrix{\widetilde{A}}) \cap \bold{ind}(\matrix{\widetilde{B}})\\
+ \matrix{\widetilde{A}}(i,j) {\color{red} ~\oplus~ b_0}, & \forall (i,j) \in (\bold{ind}(\matrix{\widetilde{A}}) - (\bold{ind}(\matrix{\widetilde{A}}) \cap \bold{ind}(\matrix{\widetilde{B}})))\\
+ {\color{red} a_0 ~\oplus ~}\matrix{\widetilde{B}}(i.j), & \forall (i,j) \in (\bold{ind}(\matrix{\widetilde{B}}) - (\bold{ind}(\matrix{\widetilde{A}}) \cap \bold{ind}(\matrix{\widetilde{B}})))
+\end{cases}
+\end{eqnarray*}
+where the difference operator in the previous expressions refers to set difference.

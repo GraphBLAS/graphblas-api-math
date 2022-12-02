@@ -1,5 +1,10 @@
 %-----------------------------------------------------------------------------
-\section{{\sf mxm}: Matrix-matrix multiply}
+\section{Matrix multiplication (and vector multiplication?}
+
+Should we add vxv which is dot product?
+
+%-----------------------------------------------------------------------------
+\subsection{{\sf mxm}: Matrix-matrix multiply}
 
 Multiplies a matrix with another matrix on a semiring. The result is a matrix.
 
@@ -9,26 +14,26 @@ $$
 \matrix{T} ~ = ~ \matrix{A}^{[T]} \oplus.\otimes \matrix{B}^{[T]}
 $$
 
-\paragraph{Given:}
+\paragraph{Where:}
 
 \begin{itemize}[leftmargin=0.7in]
-    \item[$\matrix{T}$]    ({\sf INOUT}) $\in \mathbb{D}_\oplus^{n\times m}$
-    
-    \item[$\oplus.\otimes$]   ({\sf IN}) The semiring used in the matrix
-    multiplication, $\langle \mathbb{D}_\oplus, \mathbb{D}_{in1},\mathbb{D}_{in2},\oplus,\otimes,0 \rangle$.
-
     \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_A^{n\times k}$
 
     \item[$\matrix{B}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_B^{k\times m}$
 
+    \item[$\oplus.\otimes$]   ({\sf IN}) The semiring used in the matrix
+    multiplication, $\langle \mathbb{D}_\oplus, \mathbb{D}_{in1},\mathbb{D}_{in2},\oplus,\otimes,0 \rangle$.
+
+    \item[$\matrix{T}$]    ({\sf OUT}) $\in \mathbb{D}_\oplus^{n\times m}$
+    
 \end{itemize}
 
 
 \paragraph{Description}
 
-{\sf mxm} computes the matrix product ${\sf T} = {\sf
-A}^{[T]} \oplus . \otimes {\sf B}^{[T]}$ (where matrices {\sf A}
-and {\sf B} can be optionally transposed).  
+{\sf mxm} computes the matrix product 
+$\matrix{T} = \matrix{A}^{[T]} \oplus . \otimes \matrix{B}^{[T]}$
+(where matrices \matrix{A} and \matrix{B} can be optionally transposed).  
 
 \scott{Definitions/notation of each matrix omitted, define once earlier if at all.}
 
@@ -40,10 +45,10 @@ the computation are formed ($\leftarrow$ denotes copy): \scott{Find a notation t
 \begin{enumerate}
 
 	\item Matrix $\matrix{\widetilde{A}} \leftarrow
-    {\sf desc[GrB\_INP0].GrB\_TRAN} \ ? \ {\sf A}^T : {\sf A}$.
+    {\sf desc[GrB\_INP0].GrB\_TRAN} \ ? \ \matrix{A}^T : \matrix{A}$.
 
 	\item Matrix $\matrix{\widetilde{B}} \leftarrow
-    {\sf desc[GrB\_INP1].GrB\_TRAN} \ ? \ {\sf B}^T : {\sf B}$.
+    {\sf desc[GrB\_INP1].GrB\_TRAN} \ ? \ \matrix{B}^T : \matrix{B}$.
 \end{enumerate}
 
 \scott{Dimension compatibility checks omitted.}
@@ -70,7 +75,7 @@ respectively.
 
 %-----------------------------------------------------------------------------
 
-\section{{\sf vxm}: Vector-matrix multiply}
+\subsection{{\sf vxm}: Vector-matrix multiply}
 
 Multiplies a (row) vector with a matrix on an semiring. The result is a vector.
 
@@ -80,25 +85,25 @@ $$
 \vector{t}^T ~ = ~ \vector{u}^{T} \oplus.\otimes \matrix{A}^{[T]}
 $$
 
-\paragraph{Parameters}
+\paragraph{Where:}
 
 \begin{itemize}[leftmargin=1.1in]
-    \item[$\vector{t}$]    ({\sf INOUT}) $\in \mathbb{D}_\oplus^{m}$
+    \item[$\vector{u}$]    ({\sf IN}) $\in \mathbb{D}_{u}^{n}$
+
+    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_A^{n\times m}$
 
     \item[$\oplus.\otimes$]   ({\sf IN}) The semiring used in the matrix
     multiplication, $\langle \mathbb{D}_\oplus, \mathbb{D}_{in1},\mathbb{D}_{in2},\oplus,\otimes,0 \rangle$.
 
-    \item[$\vector{u}$]    ({\sf INOUT}) $\in \mathbb{D}_{u}^{n}$
-
-    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_A^{n\times m}$
+    \item[$\vector{t}$]    ({\sf OUT}) $\in \mathbb{D}_\oplus^{m}$
 
 \end{itemize}
 
 \paragraph{Description}
 
-{\sf vxm} computes the vector-matrix product ${\sf t}^T = {\sf
-u}^T \oplus . \otimes {\sf A}^{[T]}$ (where matrix {\sf A}
- can be optionally transposed).
+{\sf vxm} computes the vector-matrix product 
+$\vector{t}^T = \vector{u}^T \oplus . \otimes \matrix{A}^{[T]}$ 
+(where matrix \matrix{A} can be optionally transposed).
 
 \scott{Definitions/notation of each matrix and vector omitted, define once earlier if at all.}
 
@@ -108,9 +113,9 @@ u}^T \oplus . \otimes {\sf A}^{[T]}$ (where matrix {\sf A}
 From the argument vectors and matrices, the internal matrices and vectors used in 
 the computation are formed ($\leftarrow$ denotes copy): \scott{Find a notation that does not refer to descriptors (descriptors is an implementation detail not math).}
 \begin{enumerate}
-	\item Vector $\vector{\widetilde{u}} \leftarrow {\sf u}$.
+	\item Vector $\vector{\widetilde{u}} \leftarrow \vector{u}$.
 
-	\item Matrix $\matrix{\widetilde{A}} \leftarrow {\sf desc[GrB\_INP1].GrB\_TRAN} \ ? \ {\sf A}^T : {\sf A}$.
+	\item Matrix $\matrix{\widetilde{A}} \leftarrow {\sf desc[GrB\_INP1].GrB\_TRAN} \ ? \ \matrix{A}^T : \matrix{A}$.
 \end{enumerate}
 
 \scott{Dimension compatibility checks omitted.}
@@ -133,7 +138,7 @@ respectively.
 
 %-----------------------------------------------------------------------------
 
-\section{{\sf mxv}: Matrix-vector multiply}
+\subsection{{\sf mxv}: Matrix-vector multiply}
 
 Multiplies a matrix by a vector on a semiring. The result is a vector.
 
@@ -143,24 +148,23 @@ $$
 \vector{t}~ = ~ \matrix{A}^{[T]} \oplus.\otimes \vector{u}
 $$
 
-\paragraph{Parameters}
+where
 
 \begin{itemize}[leftmargin=1.1in]
-    \item[$\vector{t}$]    ({\sf INOUT}) $\in \mathbb{D}_\oplus^{n}$
+    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_A^{n\times m}$
+
+    \item[$\vector{u}$]    ({\sf IN}) $\in \mathbb{D}_{u}^{m}$
 
     \item[$\oplus.\otimes$]   ({\sf IN}) The semiring used in the matrix
     multiplication, $\langle \mathbb{D}_\oplus, \mathbb{D}_{in1},\mathbb{D}_{in2},\oplus,\otimes,0 \rangle$.
 
-    \item[$\matrix{A}^{[T]}$]    ({\sf IN}) $\in \mathbb{D}_A^{n\times m}$
-
-    \item[$\vector{u}$]    ({\sf INOUT}) $\in \mathbb{D}_{u}^{m}$
-
+    \item[$\vector{t}$]    ({\sf OUT}) $\in \mathbb{D}_\oplus^{n}$
 \end{itemize}
 
 \paragraph{Description}
 
-{\sf GrB\_mxv} computes the matrix-vector product ${\sf w} = {\sf A}
-\oplus . \otimes {\sf u}$ (where matrix {\sf A}
+{\sf mxv} computes the matrix-vector product $\vector{t} = \matrix{A}
+\oplus . \otimes \vector{u}$ (where matrix \matrix{A}
  can be optionally transposed).
 
 \scott{Definitions/notation of each matrix and vector omitted, define once earlier if at all.}
@@ -170,9 +174,9 @@ $$
 From the argument vectors and matrices, the internal matrices and mask used in 
 the computation are formed ($\leftarrow$ denotes copy):  \scott{Find a notation that does not refer to descriptors (descriptors is an implementation detail not math).}
 \begin{enumerate}
-	\item Matrix $\matrix{\widetilde{A}} \leftarrow {\sf desc[GrB\_INP0].GrB\_TRAN} \ ? \ {\sf A}^T : {\sf A}$.
+	\item Matrix $\matrix{\widetilde{A}} \leftarrow {\sf desc[GrB\_INP0].GrB\_TRAN} \ ? \ \matrix{A}^T : \matrix{A}$.
 
-	\item Vector $\vector{\widetilde{u}} \leftarrow {\sf u}$.
+	\item Vector $\vector{\widetilde{u}} \leftarrow \vector{u}$.
 \end{enumerate}
 
 \scott{Dimension compatibility checks omitted.}
@@ -191,3 +195,15 @@ are the additive and multiplicative operators of semiring {\sf op},
 respectively.
 
 \scott{Same comments about associativity and commutativity.}
+
+%-----------------------------------------------------------------------------
+
+\subsection{Proposal: {\sf vxv}: vector dot product}
+
+Multiplies a vector by a vector on a semiring. The result is a scalar.
+
+\paragraph{\syntax}
+
+$$
+t ~ = ~ \vector{u}^T \oplus.\otimes \vector{v}
+$$
